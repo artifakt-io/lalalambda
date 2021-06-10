@@ -1,0 +1,12 @@
+service: my-service
+
+provider:
+  name: aws
+  runtime: nodejs8.9
+
+plugins:
+  - '@hapipal/lalalambda'
+
+functions:
+  runtime-per-lambda-lambda:
+    runtime: nodejs12.x

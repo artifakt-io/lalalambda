@@ -1,0 +1,57 @@
+{
+  "name": "@hapipal/lalalambda",
+  "version": "3.0.0",
+  "description": "Serverless functions powered by hapijs",
+  "main": "lib/index.js",
+  "engines": {
+    "node": ">=12"
+  },
+  "directories": {
+    "test": "test"
+  },
+  "scripts": {
+    "test": "lab -a @hapi/code -t 100 -L -I \"regeneratorRuntime\" test/index.js",
+    "coveralls": "lab -r lcov test/index.js | coveralls"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/hapipal/lalalambda.git"
+  },
+  "keywords": [
+    "serverless",
+    "framework",
+    "lambda",
+    "function",
+    "faas",
+    "hapi",
+    "plugin"
+  ],
+  "author": "Devin Ivy <devin@bigroomstudios.com>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/hapipal/lalalambda/issues"
+  },
+  "homepage": "https://github.com/hapipal/lalalambda#readme",
+  "dependencies": {
+    "@hapi/hoek": "9.x.x",
+    "@hapi/somever": "3.x.x",
+    "joi": "17.x.x",
+    "rimraf": "3.x.x"
+  },
+  "peerDependencies": {
+    "@hapi/hapi": ">=19 <21",
+    "serverless": ">=1.52.0 <3"
+  },
+  "devDependencies": {
+    "@hapi/bounce": "2.x.x",
+    "@hapi/code": "8.x.x",
+    "@hapi/hapi": "20.x.x",
+    "@hapi/lab": "24.x.x",
+    "@hapipal/toys": "3.x.x",
+    "coveralls": "3.x.x",
+    "node-stream-zip": "1.x.x",
+    "serverless": "2.x.x",
+    "serverless-offline": "6.x.x",
+    "strip-ansi": "6.x.x"
+  }
+}
