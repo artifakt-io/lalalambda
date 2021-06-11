@@ -1,12 +1,7 @@
 # API
-
-Serverless functions powered by hapijs
-
-> **Note**
->
-> Lalalambda is intended for use with hapi v19+, serverless v1 and v2, and nodejs v12+ (see v1 for lower support).
-
 Lalalambda is one package that doubles as 1. a hapi plugin and 2. a [Serverless framework](https://github.com/serverless/serverless) plugin.  These two plugins work together to allow you to define lambda functions in hapi that can be packaged and deployed using the Serverless framework to [AWS Lambda](https://aws.amazon.com/lambda/).
+
+> We are open to [expand](https://github.com/hapipal/lalalambda/issues/1) [support](https://github.com/hapipal/lalalambda/issues/2) for providers other than AWS with your help!
 
 ## The hapi plugin
 The hapi plugin is responsible for the interface to,
@@ -26,7 +21,7 @@ It only has one plugin registration option, which is used to configure the entir
 **Example**
 ```js
 await server.register({
-    plugin: require('@hapipal/lalalambda'),
+    plugin: require('lalalambda'),
     options: {
         lambdaify: true
     }
@@ -97,13 +92,13 @@ server.lambda({
 ```
 
 ## The Serverless plugin
-Currently the plugin only supports the [`aws` Serverless provider](https://serverless.com/framework/docs/providers/aws/), and each function deployed via lalalambda must use the `nodejs8.10` runtime or newer (`nodejs12.x` is recommended).  The plugin is responsible for:
+Lalalambda takes no options when used as a Serverless plugin.  Currently the plugin only supports the [`aws` Serverless provider](https://serverless.com/framework/docs/providers/aws/), and each function deployed via lalalambda must use the `nodejs8.10` runtime or newer.  The plugin is responsible for:
 
 1. Configuring the project's Serverless service based upon relevant lambda and route configurations made within hapi.
 
 2. Writing lambda handler files during packaging, deployment, local invocation, etc., and later cleaning them up.  These files will be written in your project root's `_lalalambda/` directory.
 
-In order to interoperate with your hapi server, it is expected that `server.js` or `server/index.js` export an async function named `deployment` returning your configured hapi server.  This server should have the [lalalambda hapi plugin](#the-hapi-plugin) registered, and it may be [initialized](https://hapi.dev/api/#server.initialize()) but should not be [started](https://hapi.dev/api/#server.start()).  The path to `server.js` can also be customized through the `custom.lalalambda` config section as shown below.
+In order to interoperate with your hapi server, it is expected that `server.js` or `server/index.js` export an async function named `deployment` returning your configured hapi server.  This server should have the [lalalambda hapi plugin](#the-hapi-plugin) registered.
 
 A minimal Serverless [config](https://serverless.com/framework/docs/providers/aws/guide/serverless.yml/) utilizing lalalambda will look like this:
 
@@ -113,13 +108,8 @@ service: my-service
 
 provider:
   name: aws
-  runtime: nodejs12.x
+  runtime: nodejs8.10
 
 plugins:
-  - '@hapipal/lalalambda'
-
-# optional
-custom:
-  lalalambda:
-    serverPath: some/relative/path/to/server.js
+  - lalalambda
 ```

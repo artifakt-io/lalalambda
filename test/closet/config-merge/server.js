@@ -12,6 +12,7 @@ exports.deployment = async () => {
     server.lambda({
         id: 'config-merge-lambda-one',
         options: {
+            runtime: 'nodejs10.15',
             memorySize: 512,
             exclude: ['exclude.js'],
             include: ['include.js'],
@@ -28,7 +29,7 @@ exports.deployment = async () => {
     server.lambda({
         id: 'config-merge-lambda-two',
         options: {
-            runtime: 'nodejs12.x',
+            runtime: 'nodejs10.15',
             memorySize: 512,
             exclude: ['exclude.js'],
             include: ['include.js'],

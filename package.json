@@ -1,31 +1,20 @@
 {
-  "name": "@hapipal/lalalambda",
-  "version": "3.0.0",
+  "name": "lalalambda",
+  "version": "1.1.0",
   "description": "Serverless functions powered by hapijs",
   "main": "lib/index.js",
-  "engines": {
-    "node": ">=12"
-  },
   "directories": {
     "test": "test"
   },
   "scripts": {
-    "test": "lab -a @hapi/code -t 100 -L -I \"regeneratorRuntime\" test/index.js",
+    "test": "lab -a @hapi/code -t 100 -I 'regeneratorRuntime,fetch,Response,Headers,Request' -L test/index.js",
     "coveralls": "lab -r lcov test/index.js | coveralls"
   },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/hapipal/lalalambda.git"
   },
-  "keywords": [
-    "serverless",
-    "framework",
-    "lambda",
-    "function",
-    "faas",
-    "hapi",
-    "plugin"
-  ],
+  "keywords": [],
   "author": "Devin Ivy <devin@bigroomstudios.com>",
   "license": "MIT",
   "bugs": {
@@ -33,25 +22,25 @@
   },
   "homepage": "https://github.com/hapipal/lalalambda#readme",
   "dependencies": {
-    "@hapi/hoek": "9.x.x",
-    "@hapi/somever": "3.x.x",
-    "joi": "17.x.x",
-    "rimraf": "3.x.x"
+    "@hapi/hoek": "8.x.x",
+    "@hapi/joi": "15.x.x",
+    "@hapi/somever": "2.x.x",
+    "rimraf": "2.x.x"
   },
   "peerDependencies": {
-    "@hapi/hapi": ">=19 <21",
-    "serverless": ">=1.52.0 <3"
+    "@hapi/hapi": ">=17 <20"
   },
   "devDependencies": {
-    "@hapi/bounce": "2.x.x",
-    "@hapi/code": "8.x.x",
-    "@hapi/hapi": "20.x.x",
-    "@hapi/lab": "24.x.x",
-    "@hapipal/toys": "3.x.x",
+    "@hapi/bounce": "1.x.x",
+    "@hapi/code": "6.x.x",
+    "@hapi/hapi": "18.x.x",
+    "@hapi/hapi-19": "npm:@hapi/hapi@19",
+    "@hapi/lab": "20.x.x",
     "coveralls": "3.x.x",
     "node-stream-zip": "1.x.x",
-    "serverless": "2.x.x",
-    "serverless-offline": "6.x.x",
-    "strip-ansi": "6.x.x"
+    "serverless": "1.x.x",
+    "serverless-offline": "4.x.x",
+    "strip-ansi": "5.x.x",
+    "toys": "2.x.x"
   }
 }

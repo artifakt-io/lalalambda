@@ -2,10 +2,8 @@ service: my-service
 
 provider:
   name: aws
-  runtime: nodejs12.x
-  apiGateway:
-    shouldStartNameWithService: true
+  runtime: nodejs8.10
 
 plugins:
-  - '@hapipal/lalalambda'
+  - lalalambda
   - serverless-offline-mock

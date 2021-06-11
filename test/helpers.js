@@ -3,10 +3,10 @@
 const Path = require('path');
 const StripAnsi = require('strip-ansi');
 const Serverless = require('serverless');
-const ServerlessConfigFile = require('serverless/lib/utils/getServerlessConfigFile');
 const Offline = require('serverless-offline');
+const Somever = require('@hapi/somever');
 
-exports.Hapi = require('@hapi/hapi');
+exports.Hapi = Somever.match(process.version, '>=12') ? require('@hapi/hapi-19') : require('@hapi/hapi');
 
 exports.makeServerless = (servicePath, argv) => {
 
@@ -44,19 +44,7 @@ exports.makeServerless = (servicePath, argv) => {
         serverless.processedInput.commands = serverless.processedInput.commands
             .filter((c) => c !== 'interactiveCli');
 
-        try {
-            await run.call(serverless);
-        }
-        finally {
-
-            // Something between serverless 1.77.1 and 1.78.0 made this cache clear necessary.
-            // When reusing closet/offline-canvas the parsed serverless.yaml object is being
-            // reused each time, which caused lambda functions from earlier tests to show-up
-            // in later tests (serverless.config.functions).  Super odd!  In serverless v1 and
-            // v2 the cache can be accessed, but in slightly different ways:
-            const cache = ServerlessConfigFile.getServerlessConfigFile.cache || ServerlessConfigFile.getServerlessConfigFile;
-            cache.clear();
-        }
+        await run.call(serverless);
 
         return StripAnsi(serverless.cli.output);
     };
@@ -69,7 +57,7 @@ exports.offline = (serverless, withOffline) => {
     const offline = serverless.pluginManager.plugins
         .find((p) => p.constructor.name === 'OfflineMock');
 
-    offline.ready = async () => await withOffline(offline);
+    offline._listenForTermination = async () => await withOffline(offline);
 
     return serverless;
 };
@@ -99,53 +87,43 @@ exports.useServer = (servicePath, server) => {
 
 exports.OfflineMock = class OfflineMock extends Offline {
 
-    constructor(sls, opts) {
+    constructor(...args) {
 
-        super(sls, { ...opts, noPrependStageInUrl: true });
+        super(...args);
 
-        // Make this hook lazy so that we can override ready() inside offline() helper
-        this.hooks['offline:start:ready'] = () => this.ready();
+        // Allows useServer() helper to work
+        this.options.skipCacheInvalidation = true;
+
+        this.serverlessLog = (...logs) => this.serverless.cli.log(...logs);
     }
 
-    get server() {
+    async _listen() {
 
-        return super.getApiGatewayServer();
-    }
-
-    async _createHttp(events) {
-
-        // Silence logging of route summary
-        const { log: origLog } = console;
-        Object.assign(console, { log: () => null });
-
-        try {
-            await super._createHttp(events, true);
-        }
-        finally {
-            Object.assign(console, { log: origLog });
-        }
-
-        this.server.ext('onPreHandler', (request, h) => {
+        this.server.ext('onPreHandler', (request, reply) => {
 
             // Account for serverless-offline issue where multiValueHeaders are not set when using inject()
 
-            request.raw.req.rawHeaders = Object.entries(request.headers)
-                .flatMap(([key, vals]) => {
+            request.multiValueHeaders = Object.entries(request.headers)
+                .reduce((collect, [header, value]) => ({
+                    ...collect,
+                    [header]: [].concat(value)
+                }), {});
 
-                    return [].concat(vals).flatMap((val) => [key, val]);
-                });
-
-            return h.continue;
+            return reply.continue();
         });
-    }
 
-    async _createLambda(lambdas) {
+        await this.server.initialize();
 
-        await super._createLambda(lambdas, true);
+        return this.server;
     }
 
     async end() {
 
-        await super.end(true);
+        return await this.server.stop();
+    }
+
+    printBlankLine() {
+
+        this.serverlessLog();
     }
 };

@@ -1,9 +1,0 @@
-service: my-service
-
-provider:
-  name: aws
-  runtime: nodejs12.x
-
-plugins:
-  - '@hapipal/lalalambda'
-  - serverless-offline-mock

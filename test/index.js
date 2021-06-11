@@ -9,7 +9,7 @@ const Zlib = require('zlib');
 const Lab = require('@hapi/lab');
 const Code = require('@hapi/code');
 const Bounce = require('@hapi/bounce');
-const Toys = require('@hapipal/toys');
+const Toys = require('toys');
 const Rimraf = require('rimraf');
 const StreamZip = require('node-stream-zip');
 const { Hapi, ...Helpers } = require('./helpers');
@@ -30,7 +30,7 @@ describe('Lalalambda', () => {
 
         try {
             // Necessary so that handler() can require lalalambda
-            await symlink('../..', Path.resolve(__dirname, '..', 'node_modules/@hapipal/lalalambda'));
+            await symlink('..', Path.resolve(__dirname, '..', 'node_modules/lalalambda'));
         }
         catch (err) {
             Bounce.ignore(err, { code: 'EEXIST' });
@@ -248,7 +248,7 @@ describe('Lalalambda', () => {
                             lalalambda: {
                                 id: 'y',
                                 options: {
-                                    runtime: 'nodejs12.x'
+                                    runtime: 'nodejs10.15'
                                 }
                             }
                         },
@@ -262,7 +262,7 @@ describe('Lalalambda', () => {
 
                 expect(lambda.id).to.equal('y');
                 expect(lambda.settings).to.equal({
-                    runtime: 'nodejs12.x',
+                    runtime: 'nodejs10.15',
                     events: [
                         {
                             http: {
@@ -815,7 +815,7 @@ describe('Lalalambda', () => {
                         lambdaify: {
                             id: 'x',
                             options: {
-                                runtime: 'nodejs12.x'
+                                runtime: 'nodejs10.15'
                             }
                         }
                     }
@@ -825,7 +825,7 @@ describe('Lalalambda', () => {
 
                 expect(lambda.id).to.equal('x');
                 expect(lambda.settings).to.equal({
-                    runtime: 'nodejs12.x',
+                    runtime: 'nodejs10.15',
                     events: [
                         {
                             http: {
@@ -916,14 +916,6 @@ describe('Lalalambda', () => {
         });
 
         describe('http handler', () => {
-
-            before(async () => {
-
-                // Warm-up serverless-offline to avoid timing issues during tests
-                const serverless = Helpers.makeServerless('offline-canvas', ['offline', 'start']);
-                await serverless.init();
-                await Helpers.offline(serverless, () => null).run();
-            });
 
             it('handles a simple request with query params.', async (flags) => {
 
@@ -1183,14 +1175,14 @@ describe('Lalalambda', () => {
 
         it('requires an AWS provider.', async () => {
 
-            const serverless = Helpers.makeServerless('bad-provider', ['print']);
+            const serverless = Helpers.makeServerless('bad-provider', []);
 
             await expect(serverless.init()).to.reject(/Lalalambda requires using the serverless AWS provider\./);
         });
 
         it('requires the nodejs runtime (incorrect).', async () => {
 
-            const serverless = Helpers.makeServerless('bad-runtime', ['print']);
+            const serverless = Helpers.makeServerless('bad-runtime', []);
 
             await serverless.init();
 
@@ -1199,25 +1191,25 @@ describe('Lalalambda', () => {
 
         it('requires the nodejs runtime (missing).', async () => {
 
-            const serverless = Helpers.makeServerless('bad-runtime-missing', ['print']);
+            const serverless = Helpers.makeServerless('bad-runtime-missing', []);
 
             await serverless.init();
 
             await expect(serverless.run()).to.reject('Lambda "bad-runtime-missing-lambda" must be configured with a nodejs runtime.');
         });
 
-        it('requires the nodejs runtime >=12.', async () => {
+        it('requires the nodejs runtime >=8.10.', async () => {
 
-            const serverless = Helpers.makeServerless('bad-runtime-version', ['print']);
+            const serverless = Helpers.makeServerless('bad-runtime-version', []);
 
             await serverless.init();
 
-            await expect(serverless.run()).to.reject('Lambda "bad-runtime-version-lambda" must be configured with a nodejs runtime >=12.');
+            await expect(serverless.run()).to.reject('Lambda "bad-runtime-version-lambda" must be configured with a nodejs runtime >=8.10.');
         });
 
         it('checks per-lambda nodejs runtime.', async () => {
 
-            const serverless = Helpers.makeServerless('runtime-per-lambda', ['print']);
+            const serverless = Helpers.makeServerless('runtime-per-lambda', []);
 
             await serverless.init();
 
@@ -1226,7 +1218,7 @@ describe('Lalalambda', () => {
 
         it('merges serverless and hapi lambda configs.', async () => {
 
-            const serverless = Helpers.makeServerless('config-merge', ['print']);
+            const serverless = Helpers.makeServerless('config-merge', []);
 
             await serverless.init();
             await serverless.run();
@@ -1235,7 +1227,7 @@ describe('Lalalambda', () => {
             const config2 = serverless.service.getFunction('config-merge-lambda-two');
 
             expect(config1).to.equal({
-                name: 'my-service-dev-config-merge-lambda-one',
+                runtime: 'nodejs10.15',
                 include: ['include.js'],
                 exclude: ['exclude.js'],
                 events: [{ http: { method: 'get', path: '/one' } }],
@@ -1244,8 +1236,7 @@ describe('Lalalambda', () => {
             });
 
             expect(config2).to.equal({
-                name: 'my-service-dev-config-merge-lambda-two',
-                runtime: 'nodejs12.x',
+                runtime: 'nodejs10.15',
                 include: ['also-include.js', 'include.js'],
                 exclude: ['also-exclude.js', 'exclude.js'],
                 events: [
@@ -1258,36 +1249,9 @@ describe('Lalalambda', () => {
             });
         });
 
-        it('fails when server file does not exist', async () => {
-
-            const serverless = Helpers.makeServerless('missing-server-file', ['print']);
-
-            await serverless.init();
-
-            await expect(serverless.run()).to.reject(`No server found! The current project must export { deployment: async () => server } from ${Path.join(__dirname, '/closet/missing-server-file/server.')}`);
-        });
-
-        it('can load the server file with file extension from a custom path', async () => {
-
-            const serverless = Helpers.makeServerless('server-file-location-with-file-extension', ['print']);
-
-            await serverless.init();
-
-            await expect(serverless.run()).to.not.reject();
-        });
-
-        it('can load the server file without file extension from a custom path', async () => {
-
-            const serverless = Helpers.makeServerless('server-file-location-without-file-extension', ['print']);
-
-            await serverless.init();
-
-            await expect(serverless.run()).to.not.reject();
-        });
-
         it('fails when deployment does not exist.', async () => {
 
-            const serverless = Helpers.makeServerless('bad-deployment-missing', ['print']);
+            const serverless = Helpers.makeServerless('bad-deployment-missing', []);
 
             await serverless.init();
 
@@ -1296,7 +1260,7 @@ describe('Lalalambda', () => {
 
         it('fails when deployment has wrong exports.', async () => {
 
-            const serverless = Helpers.makeServerless('bad-deployment-exports', ['print']);
+            const serverless = Helpers.makeServerless('bad-deployment-exports', []);
 
             await serverless.init();
 
@@ -1305,7 +1269,7 @@ describe('Lalalambda', () => {
 
         it('fails when deployment throws while being required.', async () => {
 
-            const serverless = Helpers.makeServerless('bad-deployment-error', ['print']);
+            const serverless = Helpers.makeServerless('bad-deployment-error', []);
 
             await serverless.init();
 
@@ -1315,28 +1279,6 @@ describe('Lalalambda', () => {
         it('can locally invoke a lambda registered by hapi.', async () => {
 
             const serverless = Helpers.makeServerless('invoke', ['invoke', 'local', '--function', 'invoke-lambda']);
-
-            await serverless.init();
-
-            const output = await serverless.run();
-
-            expect(output).to.contain(`"success": "invoked"`);
-        });
-
-        it('can locally invoke a lambda registered by hapi to a custom serverPath.', async () => {
-
-            const serverless = Helpers.makeServerless('invoke-custom-server-path', ['invoke', 'local', '--function', 'invoke-lambda']);
-
-            await serverless.init();
-
-            const output = await serverless.run();
-
-            expect(output).to.contain(`"success": "invoked"`);
-        });
-
-        it('can locally invoke a lambda registered by hapi to a custom serverPath containing a single quote.', async () => {
-
-            const serverless = Helpers.makeServerless('invoke-custom-server-path-escaped', ['invoke', 'local', '--function', 'invoke-lambda']);
 
             await serverless.init();
 
@@ -1355,7 +1297,7 @@ describe('Lalalambda', () => {
             const result = JSON.parse(output);
 
             expect(result).to.only.contain(['plugins', 'bind', 'event', 'ctx']);
-            expect(result.plugins).to.equal(['@hapipal/lalalambda']);
+            expect(result.plugins).to.equal(['lalalambda']);
             expect(result.bind).to.equal({ some: 'data' });
             expect(result.event).to.equal({ an: 'occurrence' });
             expect(result.ctx).to.contain({ functionName: 'my-service-dev-invoke-context-lambda' });
@@ -1453,9 +1395,9 @@ describe('Lalalambda', () => {
                 'use strict';
 
                 const Path = require('path');
-                const Lalalambda = require('@hapipal/lalalambda');
+                const Lalalambda = require('lalalambda');
 
-                exports.handler = Lalalambda.handler('package-lambda', Path.resolve(__dirname, '../server'));
+                exports.handler = Lalalambda.handler('package-lambda', Path.resolve(__dirname, '..'));
             `));
 
             const cfFile = await readFile(Path.join(__dirname, 'closet', 'package', '.serverless', 'cloudformation-template-update-stack.json'));
@@ -1468,7 +1410,7 @@ describe('Lalalambda', () => {
             expect(lambdaTemplate.Properties).to.contain({
                 FunctionName: 'my-service-dev-package-lambda',
                 Handler: '_lalalambda/package-lambda.handler',
-                Runtime: 'nodejs12.x'
+                Runtime: 'nodejs8.10'
             });
         });
     });

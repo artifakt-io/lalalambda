@@ -5,8 +5,8 @@ provider:
   runtime: nodejs8.9
 
 plugins:
-  - '@hapipal/lalalambda'
+  - lalalambda
 
 functions:
   runtime-per-lambda-lambda:
-    runtime: nodejs12.x
+    runtime: nodejs8.10

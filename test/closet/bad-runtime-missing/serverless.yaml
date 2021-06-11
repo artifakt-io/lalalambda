@@ -4,4 +4,4 @@ provider:
   name: aws
 
 plugins:
-  - '@hapipal/lalalambda'
+  - lalalambda
